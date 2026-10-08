@@ -1,5 +1,5 @@
 #!/bin/bash
-# Dell G15 Control Center installer (Bazzite / Fedora Atomic).
+# Dell G15 控制中心安装脚本（Bazzite / Fedora Atomic）。
 
 set -euo pipefail
 
@@ -24,19 +24,19 @@ fatal() { echo -e "${RED}[ERROR]${NC} $*" >&2; exit 1; }
 
 execute() {
     local cmd="$*"
-    log "Executando: $cmd"
-    eval "$cmd" >/dev/null 2>&1 || fatal "Falha: $cmd"
+    log "执行：$cmd"
+    eval "$cmd" >/dev/null 2>&1 || fatal "执行失败：$cmd"
 }
 
 require_root() {
-    [[ $EUID -eq 0 ]] || fatal "Execute como root: sudo $0"
+    [[ $EUID -eq 0 ]] || fatal "请以 root 身份运行：sudo $0"
 }
 
 require_alienware_wmi() {
     if [[ ! -d /sys/devices/platform/alienware-wmi ]] && \
        ! grep -q alienware_wmi /proc/modules 2>/dev/null; then
-        warning "Driver alienware_wmi não encontrado — controle de ventoinhas não funcionará."
-        warning "Carregue o módulo (modprobe alienware_wmi) ou atualize seu kernel."
+        warning "未找到 alienware_wmi 驱动 —— 风扇控制将不可用。"
+        warning "请加载模块（modprobe alienware_wmi）或升级内核。"
     fi
 }
 
@@ -44,16 +44,16 @@ check_hardware() {
     local model
     model=$(cat /sys/class/dmi/id/product_name 2>/dev/null || echo "")
     if [[ "$model" == *"G15"* ]]; then
-        success "Dell G15 detectado: $model"
+        success "已检测到 Dell G15：$model"
     else
-        warning "Modelo G15 não detectado (encontrado: $model)."
-        read -p "Continuar mesmo assim? [y/N] " -n 1 -r; echo
-        [[ $REPLY =~ ^[Yy]$ ]] || fatal "Instalação cancelada."
+        warning "未检测到 G15 机型（当前机型：$model）。"
+        read -p "仍要继续吗？[y/N] " -n 1 -r; echo
+        [[ $REPLY =~ ^[Yy]$ ]] || fatal "安装已取消。"
     fi
 }
 
 install_application() {
-    log "Instalando em $INSTALL_DIR..."
+    log "正在安装到 $INSTALL_DIR ..."
     if systemctl is-active --quiet g15-daemon 2>/dev/null; then
         execute "systemctl stop g15-daemon"
     fi
@@ -62,7 +62,7 @@ install_application() {
     execute "cp $SCRIPT_DIR/requirements.txt $INSTALL_DIR/"
     execute "cp $SCRIPT_DIR/system/g15-control-center.svg $INSTALL_DIR/icon.svg"
 
-    log "Criando venv..."
+    log "正在创建虚拟环境 venv ..."
     execute "python3 -m venv $INSTALL_DIR/venv"
     execute "$INSTALL_DIR/venv/bin/pip install --upgrade pip"
     execute "$INSTALL_DIR/venv/bin/pip install -r $INSTALL_DIR/requirements.txt"
@@ -101,9 +101,9 @@ EOF
 start_services() {
     execute "systemctl start g15-daemon.service"
     if systemctl is-active --quiet g15-daemon; then
-        success "Daemon iniciado."
+        success "后台服务已启动。"
     else
-        warning "Daemon não subiu. Verifique: journalctl -u g15-daemon"
+        warning "后台服务未启动，请检查：journalctl -u g15-daemon"
     fi
 }
 
@@ -117,7 +117,7 @@ main() {
     install_gmode_key
     create_launcher
     start_services
-    success "Instalação concluída. Use o comando '${YELLOW}g15-controller${NC}' ou abra pelo menu."
+    success "安装完成。可使用命令 '${YELLOW}g15-controller${NC}' 或从应用菜单启动。"
 }
 
 main "$@"

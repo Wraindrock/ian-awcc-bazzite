@@ -50,10 +50,10 @@ class PowerInfo(NamedTuple):
 
 
 class PowerMode(Enum):
-    QUIET = PowerInfo("Silencioso", "quiet", "#4CAF50")
-    BALANCED = PowerInfo("Balanceado", "balanced", "#2196F3")
-    PERFORMANCE = PowerInfo("Performance", "performance", "#FF9800")
-    CUSTOM = PowerInfo("Personalizado", "inherit", "#9C27B0")
+    QUIET = PowerInfo("静音", "quiet", "#4CAF50")
+    BALANCED = PowerInfo("均衡", "balanced", "#2196F3")
+    PERFORMANCE = PowerInfo("性能", "performance", "#FF9800")
+    CUSTOM = PowerInfo("自定义", "inherit", "#9C27B0")
 
 
 class GModeKeyListener:

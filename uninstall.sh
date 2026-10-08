@@ -1,5 +1,5 @@
 #!/bin/bash
-# Dell G15 Control Center uninstaller.
+# Dell G15 控制中心卸载脚本。
 
 set -euo pipefail
 
@@ -21,31 +21,31 @@ success() { echo -e "${GREEN}[OK]${NC} $*"; }
 fatal() { echo -e "${RED}[ERROR]${NC} $*" >&2; exit 1; }
 
 execute() {
-    log "Executando: $*"
+    log "执行：$*"
     eval "$*" >/dev/null 2>&1 || true
 }
 
 require_root() {
-    [[ $EUID -eq 0 ]] || fatal "Execute como root: sudo $0"
+    [[ $EUID -eq 0 ]] || fatal "请以 root 身份运行：sudo $0"
 }
 
 main() {
     require_root
 
-    log "Parando serviço..."
+    log "正在停止服务 ..."
     execute "systemctl stop g15-daemon"
     execute "systemctl disable g15-daemon"
 
-    log "Removendo arquivos..."
+    log "正在删除文件 ..."
     execute "rm -f $SERVICE_FILE $BIN_LINK $DESKTOP_FILE $HWDB_FILE /tmp/g15-daemon.sock"
     execute "rm -rf $INSTALL_DIR $CONFIG_DIR"
 
-    log "Atualizando systemd / udev..."
+    log "正在刷新 systemd / udev ..."
     execute "systemctl daemon-reload"
     execute "systemd-hwdb update"
     execute "udevadm trigger --subsystem-match=input --attr-match=name='AT Translated Set 2 keyboard'"
 
-    success "Desinstalação concluída."
+    success "卸载完成。"
 }
 
 main "$@"

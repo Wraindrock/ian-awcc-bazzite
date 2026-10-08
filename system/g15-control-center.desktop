@@ -2,12 +2,16 @@
 Version=1.0
 Type=Application
 Name=Dell G15 Control Center
+Name[zh_CN]=Dell G15 控制中心
 Name[pt_BR]=Dell G15 Control Center
-Comment=Centro de controle para notebooks Dell G15
+Comment=Dell G15 notebook hardware control center
+Comment[zh_CN]=Dell G15 笔记本硬件控制中心
 Comment[pt_BR]=Centro de controle para notebooks Dell G15
 GenericName=Hardware Controller
+GenericName[zh_CN]=硬件控制器
 GenericName[pt_BR]=Controlador de Hardware
 Keywords=dell;g15;fan;temperature;gaming;hardware;control;thermal;
+Keywords[zh_CN]=dell;g15;风扇;温度;游戏;硬件;控制;散热;
 Keywords[pt_BR]=dell;g15;ventoinha;temperatura;gaming;hardware;controle;térmico;
 
 Exec=/opt/g15-controller/venv/bin/python /opt/g15-controller/src/g15_control_center.py
@@ -30,10 +34,12 @@ Actions=daemon-status;logs;
 
 [Desktop Action daemon-status]
 Name=Check Daemon Status
+Name[zh_CN]=检查后台服务状态
 Name[pt_BR]=Verificar Status do Daemon
 Exec=systemctl status g15-daemon.service
 
 [Desktop Action logs]
 Name=View Logs
+Name[zh_CN]=查看日志
 Name[pt_BR]=Ver Logs
 Exec=journalctl -u g15-daemon.service -f

@@ -1,5 +1,5 @@
 [Unit]
-Description=Dell G15 Control Center Daemon
+Description=Dell G15 控制中心后台服务（Dell G15 Control Center Daemon）
 After=multi-user.target
 
 [Service]

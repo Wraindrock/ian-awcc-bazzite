@@ -157,3 +157,6 @@ Desktop.ini
 # Project specific
 g15_controller_commander_checkpoint_*.py
 test_*.py
+
+# Verification artifacts (produced by verify_ui.py)
+verify_shots/

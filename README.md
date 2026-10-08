@@ -7,6 +7,11 @@ Centro de controle nativo para notebooks Dell G15 no Linux. Construído sobre `s
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Linux](https://img.shields.io/badge/OS-Bazzite%20%7C%20Fedora-orange)](https://bazzite.gg)
 
+> 🇨🇳 **[简体中文文档 / Chinese README](README.zh_CN.md)** — este fork adiciona interface em chinês e tema escuro/claro.
+>
+> **Este repositório é um fork de [AndersonDinizDev/g15-control-center](https://github.com/AndersonDinizDev/g15-control-center)** (upstream). Créditos ao autor original; o histórico de commits foi preservado.
+> Para sincronizar com o upstream: `git remote add upstream https://github.com/AndersonDinizDev/g15-control-center.git && git fetch upstream`.
+
 ## Recursos
 
 ### Monitoramento
@@ -40,8 +45,8 @@ Centro de controle nativo para notebooks Dell G15 no Linux. Construído sobre `s
 ## Instalação
 
 ```bash
-git clone https://github.com/AndersonDinizDev/g15-control-center.git
-cd g15-control-center
+git clone https://github.com/Grant-Felix/ian-awcc-bazzite.git
+cd ian-awcc-bazzite
 sudo ./install.sh
 ```
 
@@ -103,3 +108,13 @@ Este software interage diretamente com sysfs/ACPI. Use por sua conta e risco.
 
 ---
 **Desenvolvido para a comunidade Dell G15 no Linux.**
+
+---
+## Fork: ian-awcc-bazzite
+
+Este fork adiciona:
+
+- **Interface totalmente em chinês** (zh_CN): janela, cartões, abas, menus da bandeja, diálogos, scripts de instalação/desinstalação e campos `[zh_CN]` do `.desktop`.
+- **Temas escuro e claro**: paleta centralizada em `src/g15_theme.py`, alternável pelo botão na barra de título ou pelo menu da bandeja, com preferência persistida (padrão: escuro).
+- **Modo somente leitura (degradado)**: se o `g15-daemon` não estiver ativo, a interface lê `hwmon` diretamente e mostra temperaturas/RPM, desabilitando os controles de escrita.
+- **Documentação em chinês**: [README.zh_CN.md](README.zh_CN.md).

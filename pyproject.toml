@@ -41,9 +41,10 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/AndersonDinizDev/g15-control-center"
-"Bug Reports" = "https://github.com/AndersonDinizDev/g15-control-center/issues"
-"Source" = "https://github.com/AndersonDinizDev/g15-control-center"
+"Homepage" = "https://github.com/Grant-Felix/ian-awcc-bazzite"
+"Bug Reports" = "https://github.com/Grant-Felix/ian-awcc-bazzite/issues"
+"Source" = "https://github.com/Grant-Felix/ian-awcc-bazzite"
+"Upstream" = "https://github.com/AndersonDinizDev/g15-control-center"
 
 [project.scripts]
 g15-controller = "src.g15_control_center:main"

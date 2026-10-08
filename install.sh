@@ -3,7 +3,17 @@
 
 set -euo pipefail
 
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# 既支持从本地克隆运行（sudo ./install.sh），
+# 也支持管道运行（curl ... | sudo bash）——后者没有本地源码，
+# 需要先把仓库下载到临时目录。
+PIPED_MODE=0
+if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
+    SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+else
+    SELF_DIR=""
+    PIPED_MODE=1
+fi
+
 readonly APP_NAME="g15-control-center"
 readonly REPO_SLUG="Grant-Felix/ian-awcc-bazzite"
 readonly REPO_URL="https://github.com/${REPO_SLUG}"
@@ -14,6 +24,10 @@ readonly BIN_LINK="/usr/local/bin/g15-controller"
 readonly SERVICE_FILE="/etc/systemd/system/g15-daemon.service"
 readonly DESKTOP_FILE="/usr/local/share/applications/${APP_NAME}.desktop"
 readonly HWDB_FILE="/etc/udev/hwdb.d/90-dell-g15-gmode.hwdb"
+
+# 脚本执行期间确定下来的源码目录（管道模式下由 fetch_repo 填好）
+SCRIPT_DIR=""
+FETCH_DIR=""
 
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
@@ -80,11 +94,17 @@ Dell G15/G16 控制中心 —— 安装脚本
 
 用法：
   sudo ./install.sh              从当前目录安装
+  sudo bash install.sh           同上
   sudo ./install.sh --help       显示本帮助
 
-在线安装（无需先克隆）：
-  git clone ${REPO_GIT}
-  cd ian-awcc-bazzite && sudo ./install.sh
+一条命令在线安装（推荐，无需先克隆）：
+  curl -fsSL ${REPO_URL}/raw/main/install.sh | sudo bash
+
+或先下载再执行：
+  curl -fsSL -o install.sh ${REPO_URL}/raw/main/install.sh
+  sudo bash install.sh
+
+重复执行即可升级/重装，无需先卸载。
 
 本脚本会：
   1. 检查 alienware_wmi 驱动与机型
@@ -94,7 +114,29 @@ Dell G15/G16 控制中心 —— 安装脚本
   5. 在应用菜单创建快捷方式
 
 卸载：sudo ./uninstall.sh
+      或 curl -fsSL ${REPO_URL}/raw/main/uninstall.sh | sudo bash
 EOF
+}
+
+# 把仓库源码取到本地。本地模式直接用脚本所在目录；
+# 管道模式（curl | bash）没有源码，克隆到临时目录。
+fetch_repo() {
+    if [[ $PIPED_MODE -eq 0 && -f "$SELF_DIR/install.sh" && -d "$SELF_DIR/src" ]]; then
+        SCRIPT_DIR="$SELF_DIR"
+        log "使用本地源码：$SCRIPT_DIR"
+        return 0
+    fi
+
+    log "未检测到本地源码，正在下载仓库 ..."
+    FETCH_DIR="$(mktemp -d /tmp/g15-install.XXXXXX)"
+    # 无论成功失败都清理临时目录
+    trap 'rm -rf "$FETCH_DIR"' EXIT
+
+    if ! git clone --depth 1 "$REPO_GIT" "$FETCH_DIR/repo" >/dev/null 2>&1; then
+        fatal "下载失败：$REPO_GIT（请检查网络或手动 git clone 后运行 ./install.sh）"
+    fi
+    SCRIPT_DIR="$FETCH_DIR/repo"
+    success "源码已下载到临时目录。"
 }
 
 install_application() {
@@ -164,6 +206,7 @@ main() {
         exit 0
     fi
     require_root
+    fetch_repo
     show_source_info
     require_alienware_wmi
     check_hardware

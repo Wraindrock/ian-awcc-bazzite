@@ -26,10 +26,33 @@ execute() {
 }
 
 require_root() {
+    # 管道模式下 $0 是 "bash"，给用户可复制的等价命令。
+    if [[ "${0##*/}" == "bash" || "${0##*/}" == "sh" ]]; then
+        fatal "请以 root 身份运行：sudo bash（或先 curl 下载脚本再执行）"
+    fi
     [[ $EUID -eq 0 ]] || fatal "请以 root 身份运行：sudo $0"
 }
 
 main() {
+    if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+        cat <<EOF
+Dell G15/G16 控制中心 —— 卸载脚本
+
+用法：
+  sudo ./uninstall.sh
+  curl -fsSL https://github.com/Grant-Felix/ian-awcc-bazzite/raw/main/uninstall.sh | sudo bash
+
+本脚本会删除：
+  ${INSTALL_DIR}
+  ${CONFIG_DIR}
+  ${BIN_LINK}
+  ${SERVICE_FILE}
+  ${DESKTOP_FILE}
+  ${HWDB_FILE}
+EOF
+        exit 0
+    fi
+
     require_root
 
     log "正在停止服务 ..."

@@ -72,10 +72,54 @@
 
 ## 安装
 
+### 一条命令装好（推荐）
+
+不依赖任何本地目录，自动下载并安装：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Grant-Felix/ian-awcc-bazzite/main/install.sh | sudo bash
+```
+
+或先下载再执行（想看一眼脚本内容时用）：
+
+```bash
+curl -fsSL -o install.sh https://raw.githubusercontent.com/Grant-Felix/ian-awcc-bazzite/main/install.sh
+sudo bash install.sh
+```
+
+脚本会自动把仓库克隆到临时目录，安装完清理掉。
+
+### 从本地克隆安装
+
 ```bash
 git clone https://github.com/Grant-Felix/ian-awcc-bazzite.git
 cd ian-awcc-bazzite
 sudo ./install.sh
+```
+
+### 重新安装 / 升级
+
+**重复执行上面的任意一条命令即可**，无需先卸载。脚本只会覆盖文件，不会清空
+`/etc/g15-daemon`，你已有的设置会保留。
+
+> ⚠️ 跨语言版本升级（原版葡语 → 本汉化版）时，`/etc/g15-daemon/config.json`
+> 里存的旧模式名（如 `Balanceado`）会校验失败并回落到「均衡」。
+> 如需保留原设置，先备份再改：
+> ```bash
+> sudo cp /etc/g15-daemon/config.json ~/g15-config-backup.json
+> # 把里面的 power_mode 改成 静音 / 均衡 / 性能 / 自定义 之一，再放回
+> ```
+
+### 卸载
+
+```bash
+sudo ./uninstall.sh
+```
+
+或一条命令：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Grant-Felix/ian-awcc-bazzite/main/uninstall.sh | sudo bash
 ```
 
 安装脚本会：

@@ -5,6 +5,10 @@ set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly APP_NAME="g15-control-center"
+readonly REPO_SLUG="Grant-Felix/ian-awcc-bazzite"
+readonly REPO_URL="https://github.com/${REPO_SLUG}"
+readonly REPO_GIT="https://github.com/${REPO_SLUG}.git"
+readonly UPSTREAM_URL="https://github.com/AndersonDinizDev/g15-control-center"
 readonly INSTALL_DIR="/var/opt/g15-controller"
 readonly BIN_LINK="/usr/local/bin/g15-controller"
 readonly SERVICE_FILE="/etc/systemd/system/g15-daemon.service"
@@ -43,14 +47,64 @@ require_alienware_wmi() {
 check_hardware() {
     local model
     model=$(cat /sys/class/dmi/id/product_name 2>/dev/null || echo "")
-    if [[ "$model" == *"G15"* ]]; then
-        success "已检测到 Dell G15：$model"
+    if [[ "$model" == *"G15"* || "$model" == *"G16"* ]]; then
+        success "已检测到 Dell $model"
     else
-        warning "未检测到 G15 机型（当前机型：$model）。"
+        warning "未检测到 Dell G15/G16 机型（当前机型：${model:-未知}）。"
+        warning "本项目依赖 alienware_wmi 驱动，其他机型可能无法控制风扇。"
         read -p "仍要继续吗？[y/N] " -n 1 -r; echo
         [[ $REPLY =~ ^[Yy]$ ]] || fatal "安装已取消。"
     fi
 }
+
+show_source_info() {
+    log "仓库：${REPO_URL}"
+    log "上游：${UPSTREAM_URL}（fork 来源，MIT License）"
+}
+
+usage() {
+    cat <<EOF
+Dell G15/G16 控制中心 —— 安装脚本
+
+用法：
+  sudo ./install.sh              从当前目录安装
+  sudo ./install.sh --help       显示本帮助
+
+在线安装（无需先克隆）：
+  git clone ${REPO_GIT}
+  cd ian-awcc-bazzite && sudo ./install.sh
+
+本脚本会：
+  1. 检查 alienware_wmi 驱动与机型
+  2. 安装到 ${INSTALL_DIR}（独立 venv）
+  3. 启用 systemd 服务 g15-daemon
+  4. 通过 udev/hwdb 映射 G-Mode（F9）键
+  5. 在应用菜单创建快捷方式
+
+卸载：sudo ./uninstall.sh
+EOF
+}
+
+main() {
+    if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+        usage
+        exit 0
+    fi
+    require_root
+    show_source_info
+    require_alienware_wmi
+    check_hardware
+    install_application
+    install_systemd_service
+    install_desktop_entry
+    install_gmode_key
+    create_launcher
+    start_services
+    success "安装完成。可使用命令 '${YELLOW}g15-controller${NC}' 或从应用菜单启动。"
+    log "提示：若界面标题栏显示「只读模式」，请检查 journalctl -u g15-daemon。"
+}
+
+main "$@"
 
 install_application() {
     log "正在安装到 $INSTALL_DIR ..."
@@ -108,7 +162,12 @@ start_services() {
 }
 
 main() {
+    if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+        usage
+        exit 0
+    fi
     require_root
+    show_source_info
     require_alienware_wmi
     check_hardware
     install_application
@@ -118,6 +177,7 @@ main() {
     create_launcher
     start_services
     success "安装完成。可使用命令 '${YELLOW}g15-controller${NC}' 或从应用菜单启动。"
+    log "提示：若界面标题栏显示「只读模式」，请检查 journalctl -u g15-daemon。"
 }
 
 main "$@"

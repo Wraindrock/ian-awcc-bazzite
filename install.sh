@@ -32,6 +32,18 @@ execute() {
     eval "$cmd" >/dev/null 2>&1 || fatal "执行失败：$cmd"
 }
 
+# 非致命步骤：失败只告警，不中断安装。
+# 用于容器/虚拟机等环境下可能受限、但不影响核心功能的操作。
+try_execute() {
+    local cmd="$*"
+    log "执行：$cmd"
+    if ! eval "$cmd" >/dev/null 2>&1; then
+        warning "该步骤失败（不影响核心功能）：$cmd"
+        return 1
+    fi
+    return 0
+}
+
 require_root() {
     [[ $EUID -eq 0 ]] || fatal "请以 root 身份运行：sudo $0"
 }
@@ -85,27 +97,6 @@ Dell G15/G16 控制中心 —— 安装脚本
 EOF
 }
 
-main() {
-    if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-        usage
-        exit 0
-    fi
-    require_root
-    show_source_info
-    require_alienware_wmi
-    check_hardware
-    install_application
-    install_systemd_service
-    install_desktop_entry
-    install_gmode_key
-    create_launcher
-    start_services
-    success "安装完成。可使用命令 '${YELLOW}g15-controller${NC}' 或从应用菜单启动。"
-    log "提示：若界面标题栏显示「只读模式」，请检查 journalctl -u g15-daemon。"
-}
-
-main "$@"
-
 install_application() {
     log "正在安装到 $INSTALL_DIR ..."
     if systemctl is-active --quiet g15-daemon 2>/dev/null; then
@@ -140,8 +131,11 @@ install_desktop_entry() {
 
 install_gmode_key() {
     execute "cp $SCRIPT_DIR/system/90-dell-g15-gmode.hwdb $HWDB_FILE"
-    execute "systemd-hwdb update"
-    execute "udevadm trigger --subsystem-match=input --attr-match=name='AT Translated Set 2 keyboard'"
+    try_execute "systemd-hwdb update" || true
+    try_execute "udevadm trigger --subsystem-match=input --attr-match=name='AT Translated Set 2 keyboard'" || {
+        warning "G-Mode（F9）键映射未能立即生效。"
+        warning "这常见于容器/虚拟机环境。真机上重启一次即可生效。"
+    }
 }
 
 create_launcher() {
@@ -153,7 +147,10 @@ EOF
 }
 
 start_services() {
-    execute "systemctl start g15-daemon.service"
+    try_execute "systemctl start g15-daemon.service" || {
+        warning "后台服务未能启动，请检查：journalctl -u g15-daemon"
+        return 0
+    }
     if systemctl is-active --quiet g15-daemon; then
         success "后台服务已启动。"
     else

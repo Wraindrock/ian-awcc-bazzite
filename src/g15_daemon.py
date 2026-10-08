@@ -575,8 +575,22 @@ class DaemonServer:
             client_socket.close()
 
     def start(self):
+        # 清理上一次运行遗留的 socket。若文件不属于本进程且无法删除
+        # （例如另一实例仍在运行，或沙箱/容器禁止 unlink），则明确报错，
+        # 而不是抛出难以理解的 PermissionError。
         if os.path.exists(SOCKET_PATH):
-            os.unlink(SOCKET_PATH)
+            try:
+                os.unlink(SOCKET_PATH)
+            except PermissionError as e:
+                self.logger.error(
+                    f"无法删除已存在的 socket {SOCKET_PATH}：{e}。"
+                    f"可能有另一个 g15-daemon 正在运行"
+                    f"（检查：systemctl status g15-daemon）。"
+                )
+                raise
+            except OSError as e:
+                self.logger.error(f"清理 socket {SOCKET_PATH} 失败：{e}")
+                raise
 
         self.server_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.server_socket.bind(SOCKET_PATH)
